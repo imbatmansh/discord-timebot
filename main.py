@@ -4,36 +4,35 @@ from datetime import datetime
 import pytz
 import os
 
-# Load token from environment variable
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Time zones and their labels
 timezones = {
     "🇺🇸 America": [
-        ("🧊 Pacific (UTC-8)", "US/Pacific"),
-        ("⛰️ Mountain (UTC-7)", "US/Mountain"),
-        ("🟨 Central (UTC-6)", "US/Central"),
-        ("🧃 Eastern (UTC-5)", "US/Eastern")
+        ("🧊 Pacific", "US/Pacific"),
+        ("⛰️ Mountain", "US/Mountain"),
+        ("🟨 Central", "US/Central"),
+        ("🧃 Eastern", "US/Eastern")
     ],
     "🇪🇺 Europe": [
-        ("📦 Western (UTC 0)", "Etc/GMT"),
-        ("🧀 Central (UTC+1)", "Europe/Paris"),
-        ("🧊 Eastern (UTC+2)", "Europe/Kiev")
+        ("📦 Western", "Etc/GMT"),
+        ("🧀 Central", "Europe/Paris"),
+        ("🧊 Eastern", "Europe/Kiev"),
+        (":flag_gb: UK (London)", "Europe/London")
     ],
     "🌏 Asia-Pacific": [
-        ("🍥 SEA/Manila (UTC+8)", "Asia/Manila"),
-        ("🎯 Korea/Japan (UTC+9)", "Asia/Tokyo"),
-        ("💧 ANZ/Oceania (UTC+10/+11)", "Australia/Sydney")
+        ("🍥 SEA/Manila", "Asia/Manila"),
+        ("🎯 Korea/Japan", "Asia/Tokyo"),
+        ("💧 ANZ/Oceania", "Australia/Sydney")
     ]
 }
 
 @bot.command(name="time")
 async def show_timezones(ctx):
-    now = datetime.now(pytz.UTC)  # Use aware datetime in UTC
+    now = datetime.now(pytz.UTC)
     msg = "🕒 **Current Times:**\n\n"
 
     for region, zones in timezones.items():
@@ -41,11 +40,15 @@ async def show_timezones(ctx):
         for label, tz_str in zones:
             tz = pytz.timezone(tz_str)
             local_time = now.astimezone(tz)
-            formatted = local_time.strftime("%I:%M %p")
-            # Remove leading zero from hour only
-            if formatted.startswith("0"):
-                formatted = formatted[1:]
-            msg += f"{label}: {formatted}\n"
+
+            offset_sec = local_time.utcoffset().total_seconds()
+            hours_offset = int(offset_sec // 3600)
+            minutes_offset = int((offset_sec % 3600) // 60)
+            sign = '+' if hours_offset >= 0 else '-'
+            offset_str = f"UTC{sign}{abs(hours_offset):02d}:{abs(minutes_offset):02d}"
+
+            formatted_time = local_time.strftime("%I:%M %p").lstrip("0")
+            msg += f"{label} ({offset_str}): {formatted_time}\n"
         msg += "\n"
 
     await ctx.send(msg)
