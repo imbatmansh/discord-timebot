@@ -21,12 +21,15 @@ timezones = {
         ("📦 Western", "Etc/GMT"),
         ("🧀 Central", "Europe/Paris"),
         ("🧊 Eastern", "Europe/Kiev"),
-        (":flag_gb: UK (London)", "Europe/London")
+        ("🇬🇧 UK (London)", "Europe/London")
     ],
     "🌏 Asia-Pacific": [
         ("🍥 SEA/Manila", "Asia/Manila"),
         ("🎯 Korea/Japan", "Asia/Tokyo"),
         ("💧 ANZ/Oceania", "Australia/Sydney")
+    ],
+    "🖥️ Game Servers": [
+        ("🌴 Palmon Server", "Etc/GMT+2")
     ]
 }
 
@@ -51,10 +54,14 @@ async def show_timezones(ctx):
             msg += f"{label} ({offset_str}): {formatted_time}\n"
         msg += "\n"
 
-    await ctx.send(msg)
+    # Split if too long for Discord's 2000-char limit
+    if len(msg) > 2000:
+        for chunk in [msg[i:i+2000] for i in range(0, len(msg), 2000)]:
+            await ctx.send(chunk)
+    else:
+        await ctx.send(msg)
 
 from keep_alive import keep_alive
-
 keep_alive()
 
 bot.run(TOKEN)
